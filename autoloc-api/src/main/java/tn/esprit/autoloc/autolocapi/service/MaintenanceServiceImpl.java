@@ -2,6 +2,7 @@ package tn.esprit.autoloc.autolocapi.service;
 
 import java.util.List;
 import java.util.Optional;
+import java.math.BigDecimal;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import tn.esprit.autoloc.autolocapi.domain.Maintenance;
@@ -41,6 +42,7 @@ public class MaintenanceServiceImpl implements IMaintenanceService {
     existing.setDateDebut(maintenance.getDateDebut());
     existing.setDateFin(maintenance.getDateFin());
     existing.setDescription(maintenance.getDescription());
+    existing.setCout(maintenance.getCout());
     existing.setVehicule(maintenance.getVehicule());
     return maintenanceRepository.save(existing);
   }
@@ -82,6 +84,9 @@ public class MaintenanceServiceImpl implements IMaintenanceService {
     }
     if (maintenance.getDateFin() != null && maintenance.getDateFin().isBefore(maintenance.getDateDebut())) {
       throw new IllegalArgumentException("La date de fin de la maintenance ne peut pas être antérieure à la date de début");
+    }
+    if (maintenance.getCout() != null && maintenance.getCout().compareTo(BigDecimal.ZERO) < 0) {
+      throw new IllegalArgumentException("Le coût de la maintenance ne peut pas être négatif");
     }
   }
 }

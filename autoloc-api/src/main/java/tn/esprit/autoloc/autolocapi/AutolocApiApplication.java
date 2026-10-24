@@ -3,7 +3,7 @@ package tn.esprit.autoloc.autolocapi;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
-@SpringBootApplication
+@SpringBootApplication(scanBasePackages = "tn.esprit.autoloc")
 public class AutolocApiApplication {
 
   public static void main(String[] args) {

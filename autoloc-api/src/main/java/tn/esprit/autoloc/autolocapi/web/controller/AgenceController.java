@@ -1,6 +1,7 @@
 package tn.esprit.autoloc.autolocapi.web.controller;
 
 import java.util.List;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
@@ -20,7 +21,7 @@ import tn.esprit.autoloc.autolocapi.domain.Agence;
 import tn.esprit.autoloc.autolocapi.service.IAgenceService;
 
 @RestController
-@RequestMapping("/api/agences")
+@RequestMapping("/agences")
 @RequiredArgsConstructor
 @Tag(name = "Agences", description = "Gestion des agences")
 public class AgenceController {
@@ -40,7 +41,7 @@ public class AgenceController {
       @ApiResponse(responseCode = "200", description = "Agence récupérée"),
       @ApiResponse(responseCode = "404", description = "Agence introuvable")
   })
-  public Agence getAgenceById(@PathVariable Long id) {
+  public Agence getAgenceById(@Parameter(description = "Identifiant de l'agence") @PathVariable("id") Long id) {
     return agenceService.findById(id);
   }
 
@@ -61,7 +62,8 @@ public class AgenceController {
       @ApiResponse(responseCode = "400", description = "Données invalides"),
       @ApiResponse(responseCode = "404", description = "Agence introuvable")
   })
-  public Agence updateAgence(@PathVariable Long id, @RequestBody Agence agence) {
+  public Agence updateAgence(@Parameter(description = "Identifiant de l'agence") @PathVariable("id") Long id,
+                             @RequestBody Agence agence) {
     return agenceService.update(id, agence);
   }
 
@@ -71,7 +73,8 @@ public class AgenceController {
       @ApiResponse(responseCode = "204", description = "Agence supprimée"),
       @ApiResponse(responseCode = "404", description = "Agence introuvable")
   })
-  public ResponseEntity<Void> deleteAgence(@PathVariable Long id) {
+  public ResponseEntity<Void> deleteAgence(
+      @Parameter(description = "Identifiant de l'agence") @PathVariable("id") Long id) {
     agenceService.deleteById(id);
     return ResponseEntity.noContent().build();
   }

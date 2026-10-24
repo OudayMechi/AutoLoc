@@ -1,6 +1,7 @@
 package tn.esprit.autoloc.autolocapi.domain;
 
 import jakarta.persistence.*;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import lombok.*;
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -26,6 +27,7 @@ public class Contrat {
   @OneToOne
   private Reservation reservation;
 
-  @OneToMany(mappedBy = "contrat")
+  @OneToMany(mappedBy = "contrat", cascade = CascadeType.ALL, orphanRemoval = true)
+  @JsonManagedReference("contrat-paiements")
   private List<Paiement> paiements;
 }

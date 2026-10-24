@@ -1,6 +1,7 @@
 package tn.esprit.autoloc.autolocapi.web.controller;
 
 import java.util.List;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
@@ -20,7 +21,7 @@ import tn.esprit.autoloc.autolocapi.domain.Vehicule;
 import tn.esprit.autoloc.autolocapi.service.IVehiculeService;
 
 @RestController
-@RequestMapping("/api/vehicules")
+@RequestMapping("/vehicules")
 @RequiredArgsConstructor
 @Tag(name = "Véhicules", description = "Gestion des véhicules")
 public class VehiculeController {
@@ -40,7 +41,8 @@ public class VehiculeController {
       @ApiResponse(responseCode = "200", description = "Véhicule récupéré"),
       @ApiResponse(responseCode = "404", description = "Véhicule introuvable")
   })
-  public Vehicule getVehiculeById(@PathVariable Long id) {
+  public Vehicule getVehiculeById(
+      @Parameter(description = "Identifiant du véhicule") @PathVariable("id") Long id) {
     return vehiculeService.findById(id);
   }
 
@@ -61,7 +63,9 @@ public class VehiculeController {
       @ApiResponse(responseCode = "400", description = "Données invalides"),
       @ApiResponse(responseCode = "404", description = "Véhicule introuvable")
   })
-  public Vehicule updateVehicule(@PathVariable Long id, @RequestBody Vehicule vehicule) {
+  public Vehicule updateVehicule(
+      @Parameter(description = "Identifiant du véhicule") @PathVariable("id") Long id,
+      @RequestBody Vehicule vehicule) {
     return vehiculeService.update(id, vehicule);
   }
 
@@ -71,7 +75,8 @@ public class VehiculeController {
       @ApiResponse(responseCode = "204", description = "Véhicule supprimé"),
       @ApiResponse(responseCode = "404", description = "Véhicule introuvable")
   })
-  public ResponseEntity<Void> deleteVehicule(@PathVariable Long id) {
+  public ResponseEntity<Void> deleteVehicule(
+      @Parameter(description = "Identifiant du véhicule") @PathVariable("id") Long id) {
     vehiculeService.deleteById(id);
     return ResponseEntity.noContent().build();
   }

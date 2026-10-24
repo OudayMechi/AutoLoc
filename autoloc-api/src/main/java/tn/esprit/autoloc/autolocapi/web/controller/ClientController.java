@@ -1,6 +1,7 @@
 package tn.esprit.autoloc.autolocapi.web.controller;
 
 import java.util.List;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
@@ -20,7 +21,7 @@ import tn.esprit.autoloc.autolocapi.domain.Client;
 import tn.esprit.autoloc.autolocapi.service.IClientService;
 
 @RestController
-@RequestMapping("/api/clients")
+@RequestMapping("/clients")
 @RequiredArgsConstructor
 @Tag(name = "Clients", description = "Gestion des clients")
 public class ClientController {
@@ -40,7 +41,7 @@ public class ClientController {
       @ApiResponse(responseCode = "200", description = "Client récupéré"),
       @ApiResponse(responseCode = "404", description = "Client introuvable")
   })
-  public Client getClientById(@PathVariable Long id) {
+  public Client getClientById(@Parameter(description = "Identifiant du client") @PathVariable("id") Long id) {
     return clientService.findById(id);
   }
 
@@ -61,7 +62,8 @@ public class ClientController {
       @ApiResponse(responseCode = "400", description = "Données invalides"),
       @ApiResponse(responseCode = "404", description = "Client introuvable")
   })
-  public Client updateClient(@PathVariable Long id, @RequestBody Client client) {
+  public Client updateClient(@Parameter(description = "Identifiant du client") @PathVariable("id") Long id,
+                             @RequestBody Client client) {
     return clientService.update(id, client);
   }
 
@@ -71,7 +73,8 @@ public class ClientController {
       @ApiResponse(responseCode = "204", description = "Client supprimé"),
       @ApiResponse(responseCode = "404", description = "Client introuvable")
   })
-  public ResponseEntity<Void> deleteClient(@PathVariable Long id) {
+  public ResponseEntity<Void> deleteClient(
+      @Parameter(description = "Identifiant du client") @PathVariable("id") Long id) {
     clientService.deleteById(id);
     return ResponseEntity.noContent().build();
   }

@@ -39,6 +39,7 @@ public class EquipementServiceImpl implements IEquipementService {
     Equipement existing = findById(id);
     validateEquipement(equipement);
     existing.setLibelle(equipement.getLibelle());
+    existing.setQuantite(equipement.getQuantite());
     return equipementRepository.save(existing);
   }
 
@@ -76,6 +77,9 @@ public class EquipementServiceImpl implements IEquipementService {
     }
     if (equipement.getLibelle() == null || equipement.getLibelle().isBlank()) {
       throw new IllegalArgumentException("Le libellé de l'équipement est obligatoire");
+    }
+    if (equipement.getQuantite() != null && equipement.getQuantite() < 0) {
+      throw new IllegalArgumentException("La quantité de l'équipement ne peut pas être négative");
     }
   }
 }

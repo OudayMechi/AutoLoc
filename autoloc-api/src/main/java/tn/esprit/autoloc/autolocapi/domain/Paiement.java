@@ -1,6 +1,7 @@
 package tn.esprit.autoloc.autolocapi.domain;
 
 import jakarta.persistence.*;
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import lombok.*;
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -24,5 +25,6 @@ public class Paiement {
   private ModePaiement modePaiement;
 
   @ManyToOne
+  @JsonBackReference("contrat-paiements")
   private Contrat contrat;
 }
