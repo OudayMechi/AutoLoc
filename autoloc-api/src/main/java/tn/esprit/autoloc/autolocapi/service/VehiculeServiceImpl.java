@@ -5,7 +5,11 @@ import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import tn.esprit.autoloc.autolocapi.domain.Agence;
+import tn.esprit.autoloc.autolocapi.domain.Equipement;
 import tn.esprit.autoloc.autolocapi.domain.Vehicule;
+import tn.esprit.autoloc.autolocapi.repository.IAgenceRepository;
+import tn.esprit.autoloc.autolocapi.repository.IEquipementRepository;
 import tn.esprit.autoloc.autolocapi.repository.IVehiculeRepository;
 import tn.esprit.autoloc.exception.ResourceNotFoundException;
 
@@ -14,6 +18,8 @@ import tn.esprit.autoloc.exception.ResourceNotFoundException;
 public class VehiculeServiceImpl implements IVehiculeService {
 
   private final IVehiculeRepository vehiculeRepository;
+  private final IAgenceRepository agenceRepository;
+  private final IEquipementRepository equipementRepository;
 
   @Override
   public Vehicule create(Vehicule vehicule) {
@@ -21,6 +27,7 @@ public class VehiculeServiceImpl implements IVehiculeService {
     if (vehicule.getIdVehicule() != null) {
       throw new IllegalArgumentException("L'identifiant du véhicule doit être null pour une création");
     }
+    resolveReferences(vehicule);
     return vehiculeRepository.save(vehicule);
   }
 
@@ -45,7 +52,9 @@ public class VehiculeServiceImpl implements IVehiculeService {
     existing.setCategorie(vehicule.getCategorie());
     existing.setTarifJournalier(vehicule.getTarifJournalier());
     existing.setStatut(vehicule.getStatut());
+    resolveReferences(vehicule);
     existing.setAgence(vehicule.getAgence());
+    existing.setEquipements(vehicule.getEquipements());
     return vehiculeRepository.save(existing);
   }
 
@@ -92,6 +101,22 @@ public class VehiculeServiceImpl implements IVehiculeService {
     }
     if (vehicule.getTarifJournalier() != null && vehicule.getTarifJournalier().compareTo(BigDecimal.ZERO) < 0) {
       throw new IllegalArgumentException("Le tarif journalier du véhicule ne peut pas être négatif");
+    }
+  }
+
+  private void resolveReferences(Vehicule vehicule) {
+    Agence agence = vehicule.getAgence();
+    if (agence != null) {
+      vehicule.setAgence(agenceRepository.findById(agence.getIdAgence())
+          .orElseThrow(() -> new ResourceNotFoundException("Agence", agence.getIdAgence())));
+    }
+
+    List<Equipement> equipements = vehicule.getEquipements();
+    if (equipements != null) {
+      vehicule.setEquipements(equipements.stream()
+          .map(equipement -> equipementRepository.findById(equipement.getIdEquipement())
+              .orElseThrow(() -> new ResourceNotFoundException("Equipement", equipement.getIdEquipement())))
+          .toList());
     }
   }
 }

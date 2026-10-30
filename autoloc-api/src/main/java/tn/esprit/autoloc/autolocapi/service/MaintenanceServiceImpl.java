@@ -6,7 +6,9 @@ import java.math.BigDecimal;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import tn.esprit.autoloc.autolocapi.domain.Maintenance;
+import tn.esprit.autoloc.autolocapi.domain.Vehicule;
 import tn.esprit.autoloc.autolocapi.repository.IMaintenanceRepository;
+import tn.esprit.autoloc.autolocapi.repository.IVehiculeRepository;
 import tn.esprit.autoloc.exception.ResourceNotFoundException;
 
 @Service
@@ -14,6 +16,7 @@ import tn.esprit.autoloc.exception.ResourceNotFoundException;
 public class MaintenanceServiceImpl implements IMaintenanceService {
 
   private final IMaintenanceRepository maintenanceRepository;
+  private final IVehiculeRepository vehiculeRepository;
 
   @Override
   public Maintenance create(Maintenance maintenance) {
@@ -21,6 +24,7 @@ public class MaintenanceServiceImpl implements IMaintenanceService {
     if (maintenance.getIdMaintenance() != null) {
       throw new IllegalArgumentException("L'identifiant de la maintenance doit être null pour une création");
     }
+    resolveVehicule(maintenance);
     return maintenanceRepository.save(maintenance);
   }
 
@@ -43,6 +47,7 @@ public class MaintenanceServiceImpl implements IMaintenanceService {
     existing.setDateFin(maintenance.getDateFin());
     existing.setDescription(maintenance.getDescription());
     existing.setCout(maintenance.getCout());
+    resolveVehicule(maintenance);
     existing.setVehicule(maintenance.getVehicule());
     return maintenanceRepository.save(existing);
   }
@@ -87,6 +92,14 @@ public class MaintenanceServiceImpl implements IMaintenanceService {
     }
     if (maintenance.getCout() != null && maintenance.getCout().compareTo(BigDecimal.ZERO) < 0) {
       throw new IllegalArgumentException("Le coût de la maintenance ne peut pas être négatif");
+    }
+  }
+
+  private void resolveVehicule(Maintenance maintenance) {
+    Vehicule vehicule = maintenance.getVehicule();
+    if (vehicule != null) {
+      maintenance.setVehicule(vehiculeRepository.findById(vehicule.getIdVehicule())
+          .orElseThrow(() -> new ResourceNotFoundException("Vehicule", vehicule.getIdVehicule())));
     }
   }
 }

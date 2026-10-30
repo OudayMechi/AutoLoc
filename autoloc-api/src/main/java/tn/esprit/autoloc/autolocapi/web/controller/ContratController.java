@@ -1,6 +1,7 @@
 package tn.esprit.autoloc.autolocapi.web.controller;
 
 import java.util.List;
+import jakarta.validation.Valid;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -17,8 +18,10 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import tn.esprit.autoloc.autolocapi.domain.Contrat;
 import tn.esprit.autoloc.autolocapi.service.IContratService;
+import tn.esprit.autoloc.autolocapi.web.dto.ApiDtos.ContratDto;
+import tn.esprit.autoloc.autolocapi.web.dto.ApiDtos.ContratRequestDto;
+import tn.esprit.autoloc.autolocapi.web.mapper.ApiMapper;
 
 @RestController
 @RequestMapping("/contrats")
@@ -27,12 +30,13 @@ import tn.esprit.autoloc.autolocapi.service.IContratService;
 public class ContratController {
 
   private final IContratService contratService;
+  private final ApiMapper mapper;
 
   @GetMapping
   @Operation(summary = "Lister les contrats")
   @ApiResponse(responseCode = "200", description = "Liste des contrats récupérée")
-  public List<Contrat> getAllContrats() {
-    return contratService.findAll();
+  public List<ContratDto> getAllContrats() {
+    return contratService.findAll().stream().map(mapper::toDto).toList();
   }
 
   @GetMapping("/{id}")
@@ -41,8 +45,8 @@ public class ContratController {
       @ApiResponse(responseCode = "200", description = "Contrat récupéré"),
       @ApiResponse(responseCode = "404", description = "Contrat introuvable")
   })
-  public Contrat getContratById(@Parameter(description = "Identifiant du contrat") @PathVariable("id") Long id) {
-    return contratService.findById(id);
+  public ContratDto getContratById(@Parameter(description = "Identifiant du contrat") @PathVariable("id") Long id) {
+    return mapper.toDto(contratService.findById(id));
   }
 
   @PostMapping
@@ -52,8 +56,8 @@ public class ContratController {
       @ApiResponse(responseCode = "201", description = "Contrat créé"),
       @ApiResponse(responseCode = "400", description = "Données invalides")
   })
-  public Contrat createContrat(@RequestBody Contrat contrat) {
-    return contratService.create(contrat);
+  public ContratDto createContrat(@Valid @RequestBody ContratRequestDto contrat) {
+    return mapper.toDto(contratService.create(mapper.toEntity(contrat)));
   }
 
   @PutMapping("/{id}")
@@ -63,9 +67,9 @@ public class ContratController {
       @ApiResponse(responseCode = "400", description = "Données invalides"),
       @ApiResponse(responseCode = "404", description = "Contrat introuvable")
   })
-  public Contrat updateContrat(@Parameter(description = "Identifiant du contrat") @PathVariable("id") Long id,
-                               @RequestBody Contrat contrat) {
-    return contratService.update(id, contrat);
+  public ContratDto updateContrat(@Parameter(description = "Identifiant du contrat") @PathVariable("id") Long id,
+                               @Valid @RequestBody ContratRequestDto contrat) {
+    return mapper.toDto(contratService.update(id, mapper.toEntity(contrat)));
   }
 
   @DeleteMapping("/{id}")

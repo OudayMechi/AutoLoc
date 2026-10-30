@@ -1,6 +1,7 @@
 package tn.esprit.autoloc.autolocapi.web.controller;
 
 import java.util.List;
+import jakarta.validation.Valid;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -17,8 +18,10 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import tn.esprit.autoloc.autolocapi.domain.Maintenance;
 import tn.esprit.autoloc.autolocapi.service.IMaintenanceService;
+import tn.esprit.autoloc.autolocapi.web.dto.ApiDtos.MaintenanceDto;
+import tn.esprit.autoloc.autolocapi.web.dto.ApiDtos.MaintenanceRequestDto;
+import tn.esprit.autoloc.autolocapi.web.mapper.ApiMapper;
 
 @RestController
 @RequestMapping("/maintenances")
@@ -27,12 +30,13 @@ import tn.esprit.autoloc.autolocapi.service.IMaintenanceService;
 public class MaintenanceController {
 
   private final IMaintenanceService maintenanceService;
+  private final ApiMapper mapper;
 
   @GetMapping
   @Operation(summary = "Lister les maintenances")
   @ApiResponse(responseCode = "200", description = "Liste des maintenances récupérée")
-  public List<Maintenance> getAllMaintenances() {
-    return maintenanceService.findAll();
+  public List<MaintenanceDto> getAllMaintenances() {
+    return maintenanceService.findAll().stream().map(mapper::toDto).toList();
   }
 
   @GetMapping("/{id}")
@@ -41,9 +45,9 @@ public class MaintenanceController {
       @ApiResponse(responseCode = "200", description = "Maintenance récupérée"),
       @ApiResponse(responseCode = "404", description = "Maintenance introuvable")
   })
-  public Maintenance getMaintenanceById(
+  public MaintenanceDto getMaintenanceById(
       @Parameter(description = "Identifiant de la maintenance") @PathVariable("id") Long id) {
-    return maintenanceService.findById(id);
+    return mapper.toDto(maintenanceService.findById(id));
   }
 
   @PostMapping
@@ -52,8 +56,9 @@ public class MaintenanceController {
       @ApiResponse(responseCode = "201", description = "Maintenance créée"),
       @ApiResponse(responseCode = "400", description = "Données invalides")
   })
-  public ResponseEntity<Maintenance> createMaintenance(@RequestBody Maintenance maintenance) {
-    return ResponseEntity.status(HttpStatus.CREATED).body(maintenanceService.create(maintenance));
+  public ResponseEntity<MaintenanceDto> createMaintenance(@Valid @RequestBody MaintenanceRequestDto maintenance) {
+    return ResponseEntity.status(HttpStatus.CREATED)
+        .body(mapper.toDto(maintenanceService.create(mapper.toEntity(maintenance))));
   }
 
   @PutMapping("/{id}")
@@ -63,10 +68,10 @@ public class MaintenanceController {
       @ApiResponse(responseCode = "400", description = "Données invalides"),
       @ApiResponse(responseCode = "404", description = "Maintenance introuvable")
   })
-  public Maintenance updateMaintenance(
+  public MaintenanceDto updateMaintenance(
       @Parameter(description = "Identifiant de la maintenance") @PathVariable("id") Long id,
-      @RequestBody Maintenance maintenance) {
-    return maintenanceService.update(id, maintenance);
+      @Valid @RequestBody MaintenanceRequestDto maintenance) {
+    return mapper.toDto(maintenanceService.update(id, mapper.toEntity(maintenance)));
   }
 
   @DeleteMapping("/{id}")

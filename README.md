@@ -2,12 +2,16 @@
 
 ## Documentation de l'API
 
-L'API expose les opérations CRUD pour les véhicules, les clients et les agences.
-Après le démarrage de `autoloc-api`, la documentation interactive est disponible
-sur [http://localhost:8000/swagger-ui.html](http://localhost:8000/swagger-ui.html)
-et le document OpenAPI sur `http://localhost:8000/v3/api-docs`.
+L'API REST expose les opérations de gestion des agences, clients, employés,
+véhicules, équipements, réservations, maintenances, contrats et paiements. Les
+réponses HTTP sont converties en DTO et les données reçues sont validées avant
+leur transmission aux services.
 
-Depuis le dossier du projet, démarrez l'API avec Java 21 installé et MySQL configuré
+Après le démarrage de `autoloc-api`, la documentation interactive est disponible
+sur [http://localhost:8080/api/swagger-ui.html](http://localhost:8080/api/swagger-ui.html)
+et le document OpenAPI sur `http://localhost:8080/api/v3/api-docs`.
+
+Depuis le dossier du dépôt, démarrez l'API avec Java 21 et MySQL configuré
 conformément à `autoloc-api/src/main/resources/application.properties` :
 
 ```powershell
@@ -15,8 +19,6 @@ Set-Location .\autoloc-api
 .\mvnw.cmd spring-boot:run
 ```
 
-Pour valider les routes en classe, importer
-[`autoloc-api/postman/AutoLoc-CRUD.postman_collection.json`](./autoloc-api/postman/AutoLoc-CRUD.postman_collection.json)
-dans Postman, démarrer l'API et lancer la collection dans le Runner. La collection
-utilise `http://localhost:8000` par défaut et conserve les identifiants retournés
-par les requêtes de création pour les opérations de lecture, modification et suppression.
+Les erreurs de validation retournent le statut HTTP 400 et une réponse JSON
+contenant le statut, un message et les champs invalides. Par exemple, un client
+doit fournir une adresse électronique valide et un numéro de permis.

@@ -1,6 +1,7 @@
 package tn.esprit.autoloc.autolocapi.web.controller;
 
 import java.util.List;
+import jakarta.validation.Valid;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -17,8 +18,10 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import tn.esprit.autoloc.autolocapi.domain.Reservation;
 import tn.esprit.autoloc.autolocapi.service.IReservationService;
+import tn.esprit.autoloc.autolocapi.web.dto.ApiDtos.ReservationDto;
+import tn.esprit.autoloc.autolocapi.web.dto.ApiDtos.ReservationRequestDto;
+import tn.esprit.autoloc.autolocapi.web.mapper.ApiMapper;
 
 @RestController
 @RequestMapping("/reservations")
@@ -27,12 +30,13 @@ import tn.esprit.autoloc.autolocapi.service.IReservationService;
 public class ReservationController {
 
   private final IReservationService reservationService;
+  private final ApiMapper mapper;
 
   @GetMapping
   @Operation(summary = "Lister les réservations")
   @ApiResponse(responseCode = "200", description = "Liste des réservations récupérée")
-  public List<Reservation> getAllReservations() {
-    return reservationService.findAll();
+  public List<ReservationDto> getAllReservations() {
+    return reservationService.findAll().stream().map(mapper::toDto).toList();
   }
 
   @GetMapping("/{id}")
@@ -41,9 +45,9 @@ public class ReservationController {
       @ApiResponse(responseCode = "200", description = "Réservation récupérée"),
       @ApiResponse(responseCode = "404", description = "Réservation introuvable")
   })
-  public Reservation getReservationById(
+  public ReservationDto getReservationById(
       @Parameter(description = "Identifiant de la réservation") @PathVariable("id") Long id) {
-    return reservationService.findById(id);
+    return mapper.toDto(reservationService.findById(id));
   }
 
   @PostMapping
@@ -52,8 +56,9 @@ public class ReservationController {
       @ApiResponse(responseCode = "201", description = "Réservation créée"),
       @ApiResponse(responseCode = "400", description = "Données invalides")
   })
-  public ResponseEntity<Reservation> createReservation(@RequestBody Reservation reservation) {
-    return ResponseEntity.status(HttpStatus.CREATED).body(reservationService.create(reservation));
+  public ResponseEntity<ReservationDto> createReservation(@Valid @RequestBody ReservationRequestDto reservation) {
+    return ResponseEntity.status(HttpStatus.CREATED)
+        .body(mapper.toDto(reservationService.create(mapper.toEntity(reservation))));
   }
 
   @PutMapping("/{id}")
@@ -63,10 +68,10 @@ public class ReservationController {
       @ApiResponse(responseCode = "400", description = "Données invalides"),
       @ApiResponse(responseCode = "404", description = "Réservation introuvable")
   })
-  public Reservation updateReservation(
+  public ReservationDto updateReservation(
       @Parameter(description = "Identifiant de la réservation") @PathVariable("id") Long id,
-      @RequestBody Reservation reservation) {
-    return reservationService.update(id, reservation);
+      @Valid @RequestBody ReservationRequestDto reservation) {
+    return mapper.toDto(reservationService.update(id, mapper.toEntity(reservation)));
   }
 
   @DeleteMapping("/{id}")

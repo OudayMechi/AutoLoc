@@ -4,8 +4,12 @@ import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import tn.esprit.autoloc.autolocapi.domain.Client;
 import tn.esprit.autoloc.autolocapi.domain.Reservation;
+import tn.esprit.autoloc.autolocapi.domain.Vehicule;
+import tn.esprit.autoloc.autolocapi.repository.IClientRepository;
 import tn.esprit.autoloc.autolocapi.repository.IReservationRepository;
+import tn.esprit.autoloc.autolocapi.repository.IVehiculeRepository;
 import tn.esprit.autoloc.exception.ResourceNotFoundException;
 
 @Service
@@ -13,6 +17,8 @@ import tn.esprit.autoloc.exception.ResourceNotFoundException;
 public class ReservationServiceImpl implements IReservationService {
 
   private final IReservationRepository reservationRepository;
+  private final IVehiculeRepository vehiculeRepository;
+  private final IClientRepository clientRepository;
 
   @Override
   public Reservation create(Reservation reservation) {
@@ -20,6 +26,7 @@ public class ReservationServiceImpl implements IReservationService {
     if (reservation.getIdReservation() != null) {
       throw new IllegalArgumentException("L'identifiant de la réservation doit être null pour une création");
     }
+    resolveReferences(reservation);
     return reservationRepository.save(reservation);
   }
 
@@ -41,6 +48,7 @@ public class ReservationServiceImpl implements IReservationService {
     existing.setDateDebut(reservation.getDateDebut());
     existing.setDateFin(reservation.getDateFin());
     existing.setStatut(reservation.getStatut());
+    resolveReferences(reservation);
     existing.setVehicule(reservation.getVehicule());
     existing.setClient(reservation.getClient());
     return reservationRepository.save(existing);
@@ -86,6 +94,20 @@ public class ReservationServiceImpl implements IReservationService {
     }
     if (reservation.getDateFin().isBefore(reservation.getDateDebut())) {
       throw new IllegalArgumentException("La date de fin de la réservation ne peut pas être antérieure à la date de début");
+    }
+  }
+
+  private void resolveReferences(Reservation reservation) {
+    Vehicule vehicule = reservation.getVehicule();
+    if (vehicule != null) {
+      reservation.setVehicule(vehiculeRepository.findById(vehicule.getIdVehicule())
+          .orElseThrow(() -> new ResourceNotFoundException("Vehicule", vehicule.getIdVehicule())));
+    }
+
+    Client client = reservation.getClient();
+    if (client != null) {
+      reservation.setClient(clientRepository.findById(client.getIdClient())
+          .orElseThrow(() -> new ResourceNotFoundException("Client", client.getIdClient())));
     }
   }
 }

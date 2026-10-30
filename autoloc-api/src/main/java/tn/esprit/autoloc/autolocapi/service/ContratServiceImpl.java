@@ -6,7 +6,9 @@ import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import tn.esprit.autoloc.autolocapi.domain.Contrat;
+import tn.esprit.autoloc.autolocapi.domain.Reservation;
 import tn.esprit.autoloc.autolocapi.repository.IContratRepository;
+import tn.esprit.autoloc.autolocapi.repository.IReservationRepository;
 import tn.esprit.autoloc.exception.ResourceNotFoundException;
 
 @Service
@@ -14,12 +16,17 @@ import tn.esprit.autoloc.exception.ResourceNotFoundException;
 public class ContratServiceImpl implements IContratService {
 
   private final IContratRepository contratRepository;
+  private final IReservationRepository reservationRepository;
 
   @Override
   public Contrat create(Contrat contrat) {
     validateContrat(contrat);
     if (contrat.getIdContrat() != null) {
       throw new IllegalArgumentException("L'identifiant du contrat doit être null pour une création");
+    }
+    resolveReservation(contrat);
+    if (contrat.getPaiements() != null) {
+      contrat.getPaiements().forEach(paiement -> paiement.setContrat(contrat));
     }
     return contratRepository.save(contrat);
   }
@@ -42,6 +49,7 @@ public class ContratServiceImpl implements IContratService {
     existing.setDateSignature(contrat.getDateSignature());
     existing.setMontantTotal(contrat.getMontantTotal());
     existing.setValide(contrat.isValide());
+    resolveReservation(contrat);
     existing.setReservation(contrat.getReservation());
     return contratRepository.save(existing);
   }
@@ -80,6 +88,14 @@ public class ContratServiceImpl implements IContratService {
     }
     if (contrat.getMontantTotal() != null && contrat.getMontantTotal().compareTo(BigDecimal.ZERO) < 0) {
       throw new IllegalArgumentException("Le montant total du contrat ne peut pas être négatif");
+    }
+  }
+
+  private void resolveReservation(Contrat contrat) {
+    Reservation reservation = contrat.getReservation();
+    if (reservation != null) {
+      contrat.setReservation(reservationRepository.findById(reservation.getIdReservation())
+          .orElseThrow(() -> new ResourceNotFoundException("Reservation", reservation.getIdReservation())));
     }
   }
 }

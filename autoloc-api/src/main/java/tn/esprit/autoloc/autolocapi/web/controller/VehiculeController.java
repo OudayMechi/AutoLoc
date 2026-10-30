@@ -1,6 +1,7 @@
 package tn.esprit.autoloc.autolocapi.web.controller;
 
 import java.util.List;
+import jakarta.validation.Valid;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -17,8 +18,10 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import tn.esprit.autoloc.autolocapi.domain.Vehicule;
 import tn.esprit.autoloc.autolocapi.service.IVehiculeService;
+import tn.esprit.autoloc.autolocapi.web.dto.ApiDtos.VehiculeDto;
+import tn.esprit.autoloc.autolocapi.web.dto.ApiDtos.VehiculeRequestDto;
+import tn.esprit.autoloc.autolocapi.web.mapper.ApiMapper;
 
 @RestController
 @RequestMapping("/vehicules")
@@ -27,12 +30,13 @@ import tn.esprit.autoloc.autolocapi.service.IVehiculeService;
 public class VehiculeController {
 
   private final IVehiculeService vehiculeService;
+  private final ApiMapper mapper;
 
   @GetMapping
   @Operation(summary = "Lister les véhicules")
   @ApiResponse(responseCode = "200", description = "Liste des véhicules récupérée")
-  public List<Vehicule> getAllVehicules() {
-    return vehiculeService.findAll();
+  public List<VehiculeDto> getAllVehicules() {
+    return vehiculeService.findAll().stream().map(mapper::toDto).toList();
   }
 
   @GetMapping("/{id}")
@@ -41,9 +45,9 @@ public class VehiculeController {
       @ApiResponse(responseCode = "200", description = "Véhicule récupéré"),
       @ApiResponse(responseCode = "404", description = "Véhicule introuvable")
   })
-  public Vehicule getVehiculeById(
+  public VehiculeDto getVehiculeById(
       @Parameter(description = "Identifiant du véhicule") @PathVariable("id") Long id) {
-    return vehiculeService.findById(id);
+    return mapper.toDto(vehiculeService.findById(id));
   }
 
   @PostMapping
@@ -52,8 +56,9 @@ public class VehiculeController {
       @ApiResponse(responseCode = "201", description = "Véhicule créé"),
       @ApiResponse(responseCode = "400", description = "Données invalides")
   })
-  public ResponseEntity<Vehicule> createVehicule(@RequestBody Vehicule vehicule) {
-    return ResponseEntity.status(HttpStatus.CREATED).body(vehiculeService.create(vehicule));
+  public ResponseEntity<VehiculeDto> createVehicule(@Valid @RequestBody VehiculeRequestDto vehicule) {
+    return ResponseEntity.status(HttpStatus.CREATED)
+        .body(mapper.toDto(vehiculeService.create(mapper.toEntity(vehicule))));
   }
 
   @PutMapping("/{id}")
@@ -63,10 +68,10 @@ public class VehiculeController {
       @ApiResponse(responseCode = "400", description = "Données invalides"),
       @ApiResponse(responseCode = "404", description = "Véhicule introuvable")
   })
-  public Vehicule updateVehicule(
+  public VehiculeDto updateVehicule(
       @Parameter(description = "Identifiant du véhicule") @PathVariable("id") Long id,
-      @RequestBody Vehicule vehicule) {
-    return vehiculeService.update(id, vehicule);
+      @Valid @RequestBody VehiculeRequestDto vehicule) {
+    return mapper.toDto(vehiculeService.update(id, mapper.toEntity(vehicule)));
   }
 
   @DeleteMapping("/{id}")

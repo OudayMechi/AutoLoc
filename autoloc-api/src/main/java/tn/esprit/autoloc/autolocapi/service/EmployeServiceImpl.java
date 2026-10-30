@@ -4,7 +4,9 @@ import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import tn.esprit.autoloc.autolocapi.domain.Agence;
 import tn.esprit.autoloc.autolocapi.domain.Employe;
+import tn.esprit.autoloc.autolocapi.repository.IAgenceRepository;
 import tn.esprit.autoloc.autolocapi.repository.IEmployeRepository;
 import tn.esprit.autoloc.exception.ResourceNotFoundException;
 
@@ -13,6 +15,7 @@ import tn.esprit.autoloc.exception.ResourceNotFoundException;
 public class EmployeServiceImpl implements IEmployeService {
 
   private final IEmployeRepository employeRepository;
+  private final IAgenceRepository agenceRepository;
 
   @Override
   public Employe create(Employe employe) {
@@ -20,6 +23,7 @@ public class EmployeServiceImpl implements IEmployeService {
     if (employe.getIdEmploye() != null) {
       throw new IllegalArgumentException("L'identifiant de l'employé doit être null pour une création");
     }
+    resolveAgence(employe);
     return employeRepository.save(employe);
   }
 
@@ -41,6 +45,7 @@ public class EmployeServiceImpl implements IEmployeService {
     existing.setNom(employe.getNom());
     existing.setPrenom(employe.getPrenom());
     existing.setRole(employe.getRole());
+    resolveAgence(employe);
     existing.setAgence(employe.getAgence());
     return employeRepository.save(existing);
   }
@@ -85,6 +90,14 @@ public class EmployeServiceImpl implements IEmployeService {
     }
     if (employe.getRole() == null) {
       throw new IllegalArgumentException("Le rôle de l'employé est obligatoire");
+    }
+  }
+
+  private void resolveAgence(Employe employe) {
+    Agence agence = employe.getAgence();
+    if (agence != null) {
+      employe.setAgence(agenceRepository.findById(agence.getIdAgence())
+          .orElseThrow(() -> new ResourceNotFoundException("Agence", agence.getIdAgence())));
     }
   }
 }
